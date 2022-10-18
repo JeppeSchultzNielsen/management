@@ -87,10 +87,13 @@ G4VDecayChannel* G4DecayTable::SelectADecayChannel(G4double parentMass)
   if(parentMass < 0.) parentMass=parent->GetPDGMass(); 
 
   G4double sumBR = 0.;
+  int i = 0;
   for (auto iCh = channels->cbegin(); iCh!= channels->cend(); ++iCh)
   {
-    if ( !((*iCh)->IsOKWithParentMass(parentMass)) ) continue;
+    //if ( !((*iCh)->IsOKWithParentMass(parentMass)) ) continue;
     sumBR += (*iCh)->GetBR();
+    //G4cout << "i: " << i << "channel " << (*iCh)->GetBR() << G4endl;
+    i++;
   }
   if (sumBR <= 0.0)
   {
@@ -110,7 +113,7 @@ G4VDecayChannel* G4DecayTable::SelectADecayChannel(G4double parentMass)
     for (auto iCh = channels->cbegin(); iCh!= channels->cend(); ++iCh)
     {
       sum += (*iCh)->GetBR();
-      if ( !((*iCh)->IsOKWithParentMass(parentMass)) ) continue;
+      //if ( !((*iCh)->IsOKWithParentMass(parentMass)) ) continue;
       if (br < sum) return (*iCh);
     }
   }

@@ -241,7 +241,8 @@ void G4IonTable::DestroyWorkerG4IonTable()
 
 // --------------------------------------------------------------------
 // CreateIon
-//
+// Modified to accomodate negative excitation energy ions. This is the
+// method called during radioactive decay
 G4ParticleDefinition* G4IonTable::CreateIon(G4int Z, G4int A, G4double E, 
                                             G4Ions::G4FloatLevelBase flb)
 {
@@ -309,7 +310,7 @@ G4ParticleDefinition* G4IonTable::CreateIon(G4int Z, G4int A, G4double E,
     // excitation energy
     Eex = E;
     // lvl is assigned to 9 temporarily    
-    if (Eex>0.0) lvl=9;
+    if (Eex!=0.0) lvl=9;
   }
 
   // Eex = G4NuclideTable::Round(Eex); 
@@ -521,7 +522,7 @@ G4IonTable::CreateIon(G4int Z, G4int A, G4int LL, G4int lvl)
 //
 G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4int lvl)
 {
-  if ( (A<1) || (Z<=0) || (lvl<0) || (A>999) )
+  if ( (A<1) || (Z<=0) || (A>999) )
   {
 #ifdef G4VERBOSE
     if (GetVerboseLevel()>0)
@@ -635,11 +636,11 @@ G4IonTable::GetIon(G4int Z, G4int A, G4double E, char flbChar, G4int J)
 }
 
 // --------------------------------------------------------------------
-//
+//THIS IS THE ONE CALLED BY RADIOACTIVE DECAY METHODS
 G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4double E,
                           G4Ions::G4FloatLevelBase flb, G4int J)
 {
-  if ( (A<1) || (Z<=0) || (E<0.0) || (A>999) || (J<0) )
+  if ( (A<1) || (Z<=0) || (A>999) || (J<0) )
   {
 #ifdef G4VERBOSE
     if (GetVerboseLevel()>0)
@@ -799,7 +800,7 @@ G4ParticleDefinition*
 G4IonTable::FindIon(G4int Z, G4int A, G4double E,
                     G4Ions::G4FloatLevelBase flb, G4int J)
 {
-  if ( (A<1) || (Z<=0) || (J<0) || (E<0.0) || (A>999) )
+  if ( (A<1) || (Z<=0) || (J<0) || (A>999) )
   {
 #ifdef G4VERBOSE
     if (GetVerboseLevel()>0)
@@ -934,7 +935,7 @@ G4IonTable::FindIon(G4int Z, G4int A, G4int LL, G4double E,
 //
 G4ParticleDefinition* G4IonTable::FindIon(G4int Z, G4int A, G4int lvl)
 {
-  if ( (A<1) || (Z<=0) || (lvl<0) || (A>999) )
+  if ( (A<1) || (Z<=0) || (A>999) )
   {
 #ifdef G4VERBOSE
     if (GetVerboseLevel()>0)
@@ -1051,7 +1052,7 @@ G4IonTable::FindIon(G4int Z, G4int A, G4int LL, G4int lvl)
 
 // --------------------------------------------------------------------
 // GetNucleusEncoding
-//
+// Method called during radioactive decays
 G4int G4IonTable::GetNucleusEncoding(G4int Z, G4int A, G4double E, G4int lvl)
 {
   // PDG code for Ions
@@ -1067,7 +1068,7 @@ G4int G4IonTable::GetNucleusEncoding(G4int Z, G4int A, G4double E, G4int lvl)
   encoding += Z * 10000;
   encoding += A *10;
   if (lvl>0&&lvl<10) encoding +=lvl;       //isomer level
-  else if (E>0.0) encoding += 9;  //isomer level
+  else if (E!=0.0) encoding += 9;  //isomer level
   
   return encoding;
 }
@@ -1158,7 +1159,7 @@ G4bool G4IonTable::GetNucleusByEncoding(G4int encoding,
 
 // --------------------------------------------------------------------
 // GetIonName
-//
+// This is the one called during radioactive decay methos.
 const G4String& G4IonTable::GetIonName(G4int Z, G4int A, G4double E,
                 G4Ions::G4FloatLevelBase flb) const 
 {
@@ -1182,7 +1183,7 @@ const G4String& G4IonTable::GetIonName(G4int Z, G4int A, G4double E,
   name = GetIonName(Z, A);
 
   // Excited energy
-  if ( E>0  || flb!=G4Ions::G4FloatLevelBase::no_Float)
+  if ( E!=0.0  || flb!=G4Ions::G4FloatLevelBase::no_Float)
   {
     os->str("");
     std::ostringstream& oo = *os;
@@ -1935,8 +1936,8 @@ G4ParticleDefinition* G4IonTable::GetParticle(G4int index) const
 G4bool G4IonTable::Contains(const G4ParticleDefinition* particle) const
 {
   if (!IsIon(particle)) return false;
-
-  G4int Z = particle->GetAtomicNumber();
+    //G4cout << particle -> GetParticleName() << G4endl;
+    G4int Z = particle->GetAtomicNumber();
   G4int A = particle->GetAtomicMass();  
   G4int LL = particle->GetQuarkContent(3);  //strangeness 
   G4int encoding=GetNucleusEncoding(Z, A, LL);

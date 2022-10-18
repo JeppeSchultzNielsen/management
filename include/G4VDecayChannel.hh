@@ -337,11 +337,13 @@ inline
 void G4VDecayChannel::CheckAndFillDaughters()
 {
   G4AutoLock l(&daughtersMutex);
-  if ( G4MT_daughters == nullptr )
+  /*if ( G4MT_daughters == nullptr )
   {
     l.unlock();
     FillDaughters();
-  }
+  }*/
+  l.unlock();
+  FillDaughters();
 }
 
 inline

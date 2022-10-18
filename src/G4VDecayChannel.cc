@@ -262,13 +262,14 @@ void G4VDecayChannel::SetDaughter(G4int anIndex, const G4String& particle_name)
       "Trying to add a daughter without specifying number of secondaries!");
     return;
   }
-  if ( G4MT_daughters != nullptr )
+  //Try commenting this out to see if it works
+  /*if ( G4MT_daughters != nullptr )
   {
     G4Exception("G4VDecayChannel::SetDaughter()", "PART111", FatalException,
                 "Trying to modify a daughter of a decay channel, \
                  but decay channel already has daughters.");
     return;
-  }
+  }*/
 
   // check an index    
   if ( (anIndex<0) || (anIndex>=numberOfDaughters) )
@@ -311,7 +312,7 @@ void G4VDecayChannel::FillDaughters()
 
   // Double check, check again if another thread has already filled this, in
   // case do not need to do anything
-  if ( G4MT_daughters != nullptr ) return;
+  //if ( G4MT_daughters != nullptr ) return;
 
   G4int index;
   
