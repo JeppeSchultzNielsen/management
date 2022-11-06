@@ -53,7 +53,8 @@ G4Ions::G4Ions(
        const G4String&     subType,
        G4int               anti_encoding,
        G4double            excitation,
-       G4int               isomer
+       G4int               isomer,
+       G4double            nominalExcitation
 )
   : G4ParticleDefinition( aName,mass,width,charge,iSpin,iParity,
                           iConjugation,iIsospin,iIsospin3,gParity,pType,
@@ -61,6 +62,7 @@ G4Ions::G4Ions(
 			  shortlived, subType, anti_encoding),
     theExcitationEnergy(excitation),
     theIsomerLevel(isomer),
+    theNominalExcitationEnergy(nominalExcitation),
     floatLevelBase(G4FloatLevelBase::no_Float)
 {
    if ((aName == "proton") || (aName == "neutron")) { 

@@ -65,7 +65,8 @@ class G4Ions : public G4ParticleDefinition
        const G4String&     subType ="",
        G4int               anti_encoding =0,
        G4double            excitation = 0.0, 
-       G4int               isomer = 0
+       G4int               isomer = 0,
+       G4double            nominalExcitation = 0.0
     );
 
     virtual ~G4Ions();
@@ -75,7 +76,10 @@ class G4Ions : public G4ParticleDefinition
 
     inline G4double GetExcitationEnergy() const; 
       // Get excitation energy of nucleus
-  
+
+    inline G4double GetNominalExcitationEnergy() const;
+    inline void SetNominalExcitationEnergy(G4double nomE);
+
     inline G4int GetIsomerLevel() const; 
       // Get Isomer level (=0 for ground state)
    
@@ -103,7 +107,7 @@ class G4Ions : public G4ParticleDefinition
     G4Ions();
 
   private:
-
+    G4double theNominalExcitationEnergy = 0.0;
     G4double theExcitationEnergy = 0.0; 
     G4int theIsomerLevel = 0;
     G4FloatLevelBase floatLevelBase = G4FloatLevelBase::no_Float;
@@ -145,6 +149,18 @@ inline
 G4double G4Ions::GetExcitationEnergy() const 
 {
   return theExcitationEnergy;
+}
+
+inline
+G4double G4Ions::GetNominalExcitationEnergy() const
+{
+    return theNominalExcitationEnergy;
+}
+
+inline
+void G4Ions::SetNominalExcitationEnergy(G4double nomE)
+{
+    theNominalExcitationEnergy = nomE;
 }
 
 inline

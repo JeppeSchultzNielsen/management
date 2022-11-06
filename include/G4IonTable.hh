@@ -115,6 +115,8 @@ class G4IonTable
     G4ParticleDefinition* GetIon(G4int Z, G4int A, G4double E, G4int J=0);
     G4ParticleDefinition* GetIon(G4int Z, G4int A, G4double E, 
                                  G4Ions::G4FloatLevelBase flb, G4int J=0);
+    G4ParticleDefinition* GetIon(G4int Z, G4int A, G4double E,
+                                 G4Ions::G4FloatLevelBase flb, G4double nomE, G4int J=0);
     G4ParticleDefinition* GetIon(G4int Z, G4int A, G4double E, 
                                  char flbChar, G4int J=0);
     G4ParticleDefinition* GetIon(G4int Z, G4int A, G4int nL, G4double E,
@@ -144,6 +146,8 @@ class G4IonTable
     G4ParticleDefinition* FindIon(G4int Z, G4int A, G4double E, G4int J=0);
     G4ParticleDefinition* FindIon(G4int Z, G4int A, G4double E,
                                   G4Ions::G4FloatLevelBase flb, G4int J=0);
+    G4ParticleDefinition* FindIon(G4int Z, G4int A, G4double E,
+                                  G4Ions::G4FloatLevelBase flb, G4double nomE, G4int J=0);
     G4ParticleDefinition* FindIon(G4int Z, G4int A, G4double E,
                                   char flbChar, G4int J=0);
     G4ParticleDefinition* FindIon(G4int Z, G4int A, G4int nL, G4double E,
@@ -278,6 +282,8 @@ class G4IonTable
 
     G4ParticleDefinition* CreateIon(G4int Z, G4int A, G4double E,
                           G4Ions::G4FloatLevelBase flb);
+    G4ParticleDefinition* CreateIon(G4int Z, G4int A, G4double E,
+                                    G4Ions::G4FloatLevelBase flb, G4double nomE);
     G4ParticleDefinition* CreateIon(G4int Z, G4int A, G4int nL, G4double E,
                           G4Ions::G4FloatLevelBase flb);
     G4ParticleDefinition* CreateIon(G4int Z, G4int A, G4int lvl=0);

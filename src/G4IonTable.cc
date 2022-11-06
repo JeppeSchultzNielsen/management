@@ -246,116 +246,123 @@ void G4IonTable::DestroyWorkerG4IonTable()
 G4ParticleDefinition* G4IonTable::CreateIon(G4int Z, G4int A, G4double E, 
                                             G4Ions::G4FloatLevelBase flb)
 {
-  G4ParticleDefinition* ion = nullptr;
+    return CreateIon(Z, A, E, flb, E);
+}
+// -------------------------------------------------------------------
+// new CreateIon for radioactive decays with width.
+G4ParticleDefinition* G4IonTable::CreateIon(G4int Z, G4int A, G4double E,
+                                            G4Ions::G4FloatLevelBase flb, G4double nomE)
+{
+    G4ParticleDefinition* ion = nullptr;
 
-  // check whether GenericIon has processes
-  G4ParticleDefinition* genericIon = 
-    G4ParticleTable::GetParticleTable()->GetGenericIon();
-  G4ProcessManager* pman = nullptr;
-  if (genericIon!= nullptr) { pman = genericIon->GetProcessManager(); }
-  if ((genericIon == nullptr) || (genericIon->GetParticleDefinitionID() < 0)
-                              || (pman==nullptr))
-  {
-#ifdef G4VERBOSE
-    if (GetVerboseLevel()>1)
+    // check whether GenericIon has processes
+    G4ParticleDefinition* genericIon =
+            G4ParticleTable::GetParticleTable()->GetGenericIon();
+    G4ProcessManager* pman = nullptr;
+    if (genericIon!= nullptr) { pman = genericIon->GetProcessManager(); }
+    if ((genericIon == nullptr) || (genericIon->GetParticleDefinitionID() < 0)
+        || (pman==nullptr))
     {
-      G4cout << "G4IonTable::CreateIon() : can not create ion of  " 
-             << " Z =" << Z << "  A = " << A 
+#ifdef G4VERBOSE
+        if (GetVerboseLevel()>1)
+    {
+      G4cout << "G4IonTable::CreateIon() : can not create ion of  "
+             << " Z =" << Z << "  A = " << A
              << "  because GenericIon is not ready !!" << G4endl;
     }
 #endif
-    G4Exception( "G4IonTable::CreateIon()", "PART105", JustWarning, 
-                 "Can not create ions because GenericIon is not ready");
-    return nullptr;
-  }
-  
-  G4double life = 0.0;
-  G4DecayTable* decayTable = nullptr;
-  G4bool stable = true;
-  G4double mu  = 0.0;
-  G4double Eex = 0.0;
-  G4int    lvl = 0;
-  G4int    J   = 0;
+        G4Exception( "G4IonTable::CreateIon()", "PART105", JustWarning,
+                     "Can not create ions because GenericIon is not ready");
+        return nullptr;
+    }
 
-  const G4IsotopeProperty* fProperty = FindIsotope(Z, A, E, flb);
-  if (fProperty != nullptr )
-  {
-    Eex  = fProperty->GetEnergy();
-    lvl  = fProperty->GetIsomerLevel();
-    J    = fProperty->GetiSpin();
-    life = fProperty->GetLifeTime();
-    mu   = fProperty->GetMagneticMoment();    
-    decayTable = fProperty->GetDecayTable();
-    stable = (life <= 0.) || (decayTable == nullptr);
-    lvl = fProperty->GetIsomerLevel();
-    if (lvl <0) lvl=9;
-  }
-  else
-  {
+    G4double life = 0.0;
+    G4DecayTable* decayTable = nullptr;
+    G4bool stable = true;
+    G4double mu  = 0.0;
+    G4double Eex = 0.0;
+    G4int    lvl = 0;
+    G4int    J   = 0;
+
+    const G4IsotopeProperty* fProperty = FindIsotope(Z, A, E, flb);
+    if (fProperty != nullptr )
+    {
+        Eex  = fProperty->GetEnergy();
+        lvl  = fProperty->GetIsomerLevel();
+        J    = fProperty->GetiSpin();
+        life = fProperty->GetLifeTime();
+        mu   = fProperty->GetMagneticMoment();
+        decayTable = fProperty->GetDecayTable();
+        stable = (life <= 0.) || (decayTable == nullptr);
+        lvl = fProperty->GetIsomerLevel();
+        if (lvl <0) lvl=9;
+    }
+    else
+    {
 #ifdef G4VERBOSE
-    if (GetVerboseLevel()>1)
+        if (GetVerboseLevel()>1)
     {
       G4ExceptionDescription ed;
       ed << "G4IonTable::CreateIon(): G4IsotopeProperty object is not found for"
          << " Z = " << Z << " A = " << A << " E = " << E/keV << " (keV)";
       if(flb!=G4Ions::G4FloatLevelBase::no_Float)
       {
-        ed << " FloatingLevel +" << G4Ions::FloatLevelBaseChar(flb); 
+        ed << " FloatingLevel +" << G4Ions::FloatLevelBaseChar(flb);
       }
       ed << ".\n"
          << " Physics quantities such as life are not set for this ion.";
       G4Exception( "G4IonTable::CreateIon()","PART70105", JustWarning, ed);
     }
 #endif
-    // excitation energy
-    Eex = E;
-    // lvl is assigned to 9 temporarily    
-    if (Eex!=0.0) lvl=9;
-  }
+        // excitation energy
+        Eex = E;
+        // lvl is assigned to 9 temporarily
+        if (Eex!=0.0) lvl=9;
+    }
 
-  // Eex = G4NuclideTable::Round(Eex); 
-  if (Eex==0.0) lvl=0;
-  // ion name
-  G4String name =""; 
-  /////////////if (lvl<9) name = GetIonName(Z, A, lvl);
-  if (lvl==0 && flb==G4Ions::G4FloatLevelBase::no_Float)
-    name = GetIonName(Z, A, lvl);
-  else
-    name = GetIonName(Z, A, Eex, flb);
+    // Eex = G4NuclideTable::Round(Eex);
+    if (Eex==0.0) lvl=0;
+    // ion name
+    G4String name ="";
+    /////////////if (lvl<9) name = GetIonName(Z, A, lvl);
+    if (lvl==0 && flb==G4Ions::G4FloatLevelBase::no_Float)
+        name = GetIonName(Z, A, lvl);
+    else
+        name = GetIonName(Z, A, Eex, flb);
 
-  // PDG encoding 
-  G4int encoding = GetNucleusEncoding(Z,A,E,lvl);
+    // PDG encoding
+    G4int encoding = GetNucleusEncoding(Z,A,E,lvl);
 
-  // PDG mass
-  G4double mass =  GetNucleusMass(Z, A)+ Eex;
- 
-  // PDG charge is set to one of nucleus
-  G4double charge =  G4double(Z)*eplus;
- 
-  // create an ion
-  // spin, parity, isospin values are fixed
+    // PDG mass
+    G4double mass =  GetNucleusMass(Z, A)+ Eex;
 
-  // Request lock for particle table accesses. Some changes are inside 
-  // this critical region.
-  //
-  ion = new G4Ions(   name,            mass,       0.0*MeV,     charge, 
-                         J,              +1,             0,          
-                         0,               0,             0,             
-                 "nucleus",               0,             A,    encoding,
-                    stable,            life,    decayTable,       false,
-                 "generic",               0,
-                       Eex,             lvl         );
+    // PDG charge is set to one of nucleus
+    G4double charge =  G4double(Z)*eplus;
 
-  // Release lock for particle table accesses.
-  //
-  ion->SetPDGMagneticMoment(mu);
-  static_cast<G4Ions*>(ion)->SetFloatLevelBase(flb);
+    // create an ion
+    // spin, parity, isospin values are fixed
 
-  // No Anti particle registered
-  ion->SetAntiPDGEncoding(0);
-  
+    // Request lock for particle table accesses. Some changes are inside
+    // this critical region.
+    //
+    ion = new G4Ions(   name,            mass,       0.0*MeV,     charge,
+                        J,              +1,             0,
+                        0,               0,             0,
+                        "nucleus",               0,             A,    encoding,
+                        stable,            life,    decayTable,       false,
+                        "generic",               0,
+                        Eex,             lvl,    nomE);
+    static_cast<G4Ions*>(ion) -> SetNominalExcitationEnergy(nomE);
+    // Release lock for particle table accesses.
+    //
+    ion->SetPDGMagneticMoment(mu);
+    static_cast<G4Ions*>(ion)->SetFloatLevelBase(flb);
+
+    // No Anti particle registered
+    ion->SetAntiPDGEncoding(0);
+
 #ifdef G4VERBOSE
-  if (GetVerboseLevel()>1)
+    if (GetVerboseLevel()>1)
   {
     G4cout << "G4IonTable::CreateIon() : create ion of " << name
            << "  " << Z << ", " << A
@@ -366,28 +373,26 @@ G4ParticleDefinition* G4IonTable::CreateIon(G4int Z, G4int A, G4double E,
              << " excited energy=" << Eex/keV << "[keV]";
     }
     G4cout << G4endl;
-  } 
+  }
 #endif
-  
-  // Add process manager to the ion
-  AddProcessManager(ion);
- 
+
+    // Add process manager to the ion
+    AddProcessManager(ion);
 #ifdef G4MULTITHREADED
-  // Fill decay channels if this method is invoked from worker
+    // Fill decay channels if this method is invoked from worker
   if(G4Threading::IsWorkerThread())
   {
     if(!stable && decayTable)
     {
       G4int nCh = decayTable->entries();
       for(G4int iCh=0; iCh<nCh; ++iCh)
-      { 
-        decayTable->GetDecayChannel(iCh)->GetDaughter(0); 
+      {
+        decayTable->GetDecayChannel(iCh)->GetDaughter(0);
       }
     }
   }
 #endif
-  
-  return ion;
+    return ion;
 }
 
 // --------------------------------------------------------------------
@@ -624,7 +629,7 @@ G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4int LL, G4int lvl)
 //
 G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4double E, G4int J)
 { 
-  return GetIon(Z,A,E,G4Ions::G4FloatLevelBase::no_Float,J); 
+  return GetIon(Z,A,E,G4Ions::G4FloatLevelBase::no_Float,J);
 }
 
 // --------------------------------------------------------------------
@@ -632,7 +637,7 @@ G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4double E, G4int J)
 G4ParticleDefinition*
 G4IonTable::GetIon(G4int Z, G4int A, G4double E, char flbChar, G4int J)
 { 
-  return GetIon(Z,A,E,G4Ions::FloatLevelBase(flbChar),J); 
+  return GetIon(Z,A,E,G4Ions::FloatLevelBase(flbChar),J);
 }
 
 // --------------------------------------------------------------------
@@ -640,43 +645,49 @@ G4IonTable::GetIon(G4int Z, G4int A, G4double E, char flbChar, G4int J)
 G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4double E,
                           G4Ions::G4FloatLevelBase flb, G4int J)
 {
-  if ( (A<1) || (Z<=0) || (A>999) || (J<0) )
-  {
-#ifdef G4VERBOSE
-    if (GetVerboseLevel()>0)
+    return GetIon(Z,A,E,flb,E,J); //if no nominalExcitation is given, the excitation is the nominal excitation.
+}
+
+//--------------------------------------------------------------------
+//New Method for radioactive decays with widths
+G4ParticleDefinition* G4IonTable::GetIon(G4int Z, G4int A, G4double E,
+                             G4Ions::G4FloatLevelBase flb, G4double nomE, G4int J){
+    if ( (A<1) || (Z<=0) || (A>999) || (J<0) )
     {
-      G4cout << "G4IonTable::GetIon() : illegal atomic number/mass" 
+#ifdef G4VERBOSE
+        if (GetVerboseLevel()>0)
+    {
+      G4cout << "G4IonTable::GetIon() : illegal atomic number/mass"
              << " Z =" << Z << "  A = " << A <<  "  E = " << E/keV << G4endl;
     }
 #endif
-    return nullptr;
-  }
+        return nullptr;
+    }
 
-  // Search ions with A, Z 
-  G4ParticleDefinition* ion = FindIon(Z,A,E,flb,J);
+    // Search ions with A, Z
+    G4ParticleDefinition* ion = FindIon(Z,A,E,flb,nomE,J);
 
-  // create ion
+    // create ion
 #ifdef G4MULTITHREADED
-  if(ion == nullptr )
+    if(ion == nullptr )
   {
     if(G4Threading::IsWorkerThread())
     {
       G4MUTEXLOCK(&G4IonTable::ionTableMutex);
       ion = FindIonInMaster(Z,A,E,flb,J);
-      if(ion == nullptr) ion = CreateIon(Z,A,E,flb);
+      if(ion == nullptr) ion = CreateIon(Z,A,E,flb,nomE);
       InsertWorker(ion);
       G4MUTEXUNLOCK(&G4IonTable::ionTableMutex);
     }
     else
-    { 
-      ion = CreateIon(Z,A,E,flb); 
+    {
+      ion = CreateIon(Z,A,E,flb,nomE);
     }
   }
 #else
-  if (ion == nullptr) ion = CreateIon(Z,A,E,flb);
+    if (ion == nullptr){ ion = CreateIon(Z,A,E,flb,nomE);}
 #endif
-
-  return ion;  
+    return ion;
 }
 
 // --------------------------------------------------------------------
@@ -795,66 +806,80 @@ G4IonTable::FindIon(G4int Z, G4int A, G4double E, char flbChar, G4int J)
 }
 
 // --------------------------------------------------------------------
-//
+// This is the one called by radioactive decay methods
 G4ParticleDefinition*
 G4IonTable::FindIon(G4int Z, G4int A, G4double E,
                     G4Ions::G4FloatLevelBase flb, G4int J)
 {
-  if ( (A<1) || (Z<=0) || (J<0) || (A>999) )
-  {
+    return FindIon(Z,A,E,flb,E,J);
+}
+
+// --------------------------------------------------------------------
+// New FindIon for use in radioactive widths
+G4ParticleDefinition*
+G4IonTable::FindIon(G4int Z, G4int A, G4double E,
+                    G4Ions::G4FloatLevelBase flb, G4double nomE, G4int J)
+{
+    if ( (A<1) || (Z<=0) || (J<0) || (A>999) )
+    {
 #ifdef G4VERBOSE
-    if (GetVerboseLevel()>0)
+        if (GetVerboseLevel()>0)
     {
       G4cout << "G4IonTable::FindIon(): illegal atomic number/mass"
              << " or excitation level:" << G4endl
              << " Z =" << Z << "  A = " << A <<  "  E = " << E/keV << G4endl;
     }
 #endif
-    G4Exception("G4IonTable::FindIon()","PART107",
-                JustWarning, "illegal atomic number/mass");
-    return nullptr;
-  }
-  // Search ions with A, Z ,E
-  //  !! J is omitted now !!
-  const G4ParticleDefinition* ion = nullptr;
-  G4bool isFound = false;
-
-  // check if light ion
-  ion = GetLightIon(Z,A);
-  if (ion!= nullptr && E == 0.0)
-  { 
-    // light ion 
-    isFound = true;
-  }
-  else
-  {    
-    // -- loop over all particles in Ion table
-    G4int encoding = GetNucleusEncoding(Z, A);
-    for(auto i = fIonList->find(encoding); i != fIonList->cend(); ++i)
-    {
-      ion = i->second;
-      if ( (ion->GetAtomicNumber() != Z) || (ion->GetAtomicMass()!=A) ) break;
-      // excitation level
-      G4double anExcitaionEnergy= ((const G4Ions*)(ion))->GetExcitationEnergy();
-      if (std::fabs(E - anExcitaionEnergy) < pNuclideTable->GetLevelTolerance())
-      {
-        if(((const G4Ions*)(ion))->GetFloatLevelBase()==flb)
-        {
-          isFound = true;
-          break;
-        }
-      }
+        G4Exception("G4IonTable::FindIon()","PART107",
+                    JustWarning, "illegal atomic number/mass");
+        return nullptr;
     }
-  }
+    // Search ions with A, Z ,E
+    //  !! J is omitted now !!
+    const G4ParticleDefinition* ion = nullptr;
+    G4bool isFound = false;
 
-  if ( isFound )
-  { 
-    return const_cast<G4ParticleDefinition*>(ion);
-  }
-  else
-  {
-    return nullptr;
-  }
+    // check if light ion
+    ion = GetLightIon(Z,A);
+    if (ion!= nullptr && E == 0.0)
+    {
+        // light ion
+        isFound = true;
+    }
+    else
+    {
+        // -- loop over all particles in Ion table
+        G4int encoding = GetNucleusEncoding(Z, A);
+        for(auto i = fIonList->find(encoding); i != fIonList->cend(); ++i)
+        {
+            ion = i->second;
+            if ( (ion->GetAtomicNumber() != Z) || (ion->GetAtomicMass()!=A) ) break;
+            // excitation level
+            G4double anExcitaionEnergy= ((const G4Ions*)(ion))->GetExcitationEnergy();
+            if (std::fabs(E - anExcitaionEnergy) < pNuclideTable->GetLevelTolerance())
+            {
+                if(((const G4Ions*)(ion))->GetFloatLevelBase()==flb)
+                {
+                    // nominal excitation level
+                    G4double aNominalExcitaionEnergy= ((const G4Ions*)(ion))->GetNominalExcitationEnergy();
+                    if (std::fabs(nomE - aNominalExcitaionEnergy) < pNuclideTable->GetLevelTolerance())
+                    {
+                        isFound = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if ( isFound )
+    {
+        return const_cast<G4ParticleDefinition*>(ion);
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 // --------------------------------------------------------------------
