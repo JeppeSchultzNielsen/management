@@ -328,7 +328,7 @@ G4ParticleDefinition* G4IonTable::CreateIon(G4int Z, G4int A, G4double E,
     if (lvl==0 && flb==G4Ions::G4FloatLevelBase::no_Float)
         name = GetIonName(Z, A, lvl);
     else
-        name = GetIonName(Z, A, Eex, flb);
+        name = GetIonName(Z, A, Eex, nomE, flb);
 
     // PDG encoding
     G4int encoding = GetNucleusEncoding(Z,A,E,lvl);
@@ -1184,46 +1184,48 @@ G4bool G4IonTable::GetNucleusByEncoding(G4int encoding,
 
 // --------------------------------------------------------------------
 // GetIonName
-// This is the one called during radioactive decay methos.
+// This is the one called during radioactive decay method. Modified to use nomEx.
+const G4String& G4IonTable::GetIonName(G4int Z, G4int A, G4double E, G4double nomE,
+                           G4Ions::G4FloatLevelBase flb) const{
+    static G4ThreadLocal G4String* pname = nullptr;
+    if ( pname == nullptr )
+    {
+        pname = new G4String("");
+        G4AutoDelete::Register(pname);
+    }
+    G4String& name = *pname;
+
+    static G4ThreadLocal std::ostringstream* os = nullptr;
+    if ( os == nullptr )
+    {
+        os = new std::ostringstream();
+        G4AutoDelete::Register(os);
+        os->setf(std::ios::fixed);
+        os->precision(3);
+    }
+
+    name = GetIonName(Z, A);
+
+    // Excited energy
+        os->str("");
+        std::ostringstream& oo = *os;
+
+        // Excited nucleus
+        oo<<'['<<E/keV;
+        if (flb!=G4Ions::G4FloatLevelBase::no_Float)
+        {
+            oo<<G4Ions::FloatLevelBaseChar(flb);
+        }
+        oo<< ']';
+        oo<<'['<<nomE/keV << ']';
+        name += os->str();
+    return name;
+}
+
 const G4String& G4IonTable::GetIonName(G4int Z, G4int A, G4double E,
                 G4Ions::G4FloatLevelBase flb) const 
 {
-  static G4ThreadLocal G4String* pname = nullptr;
-  if ( pname == nullptr )
-  {
-    pname = new G4String("");
-    G4AutoDelete::Register(pname);
-  }
-  G4String& name = *pname;
-
-  static G4ThreadLocal std::ostringstream* os = nullptr;
-  if ( os == nullptr )
-  {
-    os = new std::ostringstream();
-    G4AutoDelete::Register(os); 
-    os->setf(std::ios::fixed);
-    os->precision(3);
-  }
-
-  name = GetIonName(Z, A);
-
-  // Excited energy
-  if ( E!=0.0  || flb!=G4Ions::G4FloatLevelBase::no_Float)
-  {
-    os->str("");
-    std::ostringstream& oo = *os;
-
-    // Excited nucleus
-    oo<<'['<<E/keV;
-    if (flb!=G4Ions::G4FloatLevelBase::no_Float)
-    {
-      oo<<G4Ions::FloatLevelBaseChar(flb);
-    }
-    oo<< ']';
-    name += os->str();
-  }
-
-  return name;
+    return GetIonName(Z, A, E, 0, flb);
 }
 
 // --------------------------------------------------------------------

@@ -175,6 +175,8 @@ class G4IonTable
     const G4String& GetIonName(G4int Z, G4int A, G4int lvl=0) const;
     const G4String& GetIonName(G4int Z, G4int A, G4double E,
        G4Ions::G4FloatLevelBase flb=G4Ions::G4FloatLevelBase::no_Float) const;
+    const G4String& GetIonName(G4int Z, G4int A, G4double E, G4double nomE,
+                               G4Ions::G4FloatLevelBase flb=G4Ions::G4FloatLevelBase::no_Float) const;
     const G4String& GetIonName(G4int Z, G4int A, G4int nL, G4double E,
        G4Ions::G4FloatLevelBase flb=G4Ions::G4FloatLevelBase::no_Float) const;
     const G4String& GetIonName(G4int Z, G4int A, G4int nL, G4int  lvl) const;
